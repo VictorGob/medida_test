@@ -2,8 +2,8 @@ from datetime import datetime
 
 import requests
 
-from EventResponse import Event, EventsResponse
-from eventsData import EventsData
+from ACMEsports.EventResponse import Event, EventsResponse
+from ACMEsports.eventsData import EventsData
 
 URL_SCOREBOARD = "http://localhost:9000/{league}/scoreboard"
 """
@@ -83,45 +83,45 @@ class ApiConsumer:
 
 """Expected return:
 ```yaml
-    Event: 
+    Event:
       type: object
-      properties: 
-        eventId: 
+      properties:
+        eventId:
             type: string
             format: uuid
-        eventDate: 
+        eventDate:
             type: string
             format: date
-        eventTime: 
+        eventTime:
             type: string
             format: time
-        homeTeamId: 
+        homeTeamId:
             type: string
             format: uuid
-        homeTeamNickName: 
+        homeTeamNickName:
             type: string
-        homeTeamCity: 
+        homeTeamCity:
             type: string
         homeTeamRank:
             type: integer
             format: int64
             minimum: 1
-        homeTeamRankPoints: 
+        homeTeamRankPoints:
             type: number
             format: float
             minimum: 0.0
-        awayTeamId: 
+        awayTeamId:
             type: string
             format: uuid
-        awayTeamNickName: 
+        awayTeamNickName:
             type: string
-        awayTeamCity: 
+        awayTeamCity:
             type: string
         awayTeamRank:
             type: integer
             format: int64
             minimum: 1
-        awayTeamRankPoints: 
+        awayTeamRankPoints:
             type: number
             format: float
             minimum: 0.0

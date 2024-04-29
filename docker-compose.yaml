@@ -11,3 +11,14 @@ services:
       OPENAPI_MOCK_USE_EXAMPLES: 'if_present'
     ports:
       - "9000:8080"
+  # Fast-API service
+  acmesports:
+    container_name: acmesports
+    image: acmesports
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18000:18000"
+    depends_on:
+      - openapi_mock

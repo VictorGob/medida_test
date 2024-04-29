@@ -98,3 +98,4 @@ $RECYCLE.BIN/
 
 
 __pycache__/
+.ruff_cache/
