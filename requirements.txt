@@ -1,2 +1,3 @@
 fastapi[all]==0.110.2
+pyyaml
 requests==2.31.0
