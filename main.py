@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import FastAPI
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 app = FastAPI()
 
@@ -31,7 +31,7 @@ class EventData(BaseModel):
             raise ValueError("End date must be in the format 'YYYY-MM-DD'")
 
         # Check if the end date is after the start date
-        if "startDate" in values and v <= values["startDate"]:
+        if "startDate" in values.data and v <= values.data["startDate"]:
             raise ValueError("End date must be after the start date")
         return v
 
