@@ -3,3 +3,6 @@ run_docker:
 
 run_fastapi:
 	uvicorn ACMEsports.main:app --reload
+
+pytest:
+	pytest -v
