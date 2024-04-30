@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime
 
@@ -6,6 +7,8 @@ import requests
 from ACMEsports.customErrors import RemoteAPIException
 from ACMEsports.EventResponse import Event, EventsResponse
 from ACMEsports.eventsData import EventsData
+
+logger = logging.getLogger(__name__)
 
 # To detect if the code is running inside a Docker container, and adjust the port accordingly
 IN_DOCKER = os.environ.get("IN_DOCKER", False)
@@ -37,6 +40,7 @@ class ApiConsumer:
         team_rankings: dict = self.get_team_rankings(events_data.league)
         scoreboard: dict = self.get_scoreboard(events_data.league, events_data.startDate, events_data.endDate)
         if len(scoreboard) == 0 or len(team_rankings) == 0:
+            logger.error("No data found for the given parameters.")
             raise RemoteAPIException("No data found for the given parameters.")
         return self.process_data(team_rankings, scoreboard)
 
@@ -49,7 +53,9 @@ class ApiConsumer:
             modified_data = {d.pop("teamId"): d for d in data}
             return modified_data
         except Exception as e:
-            raise RemoteAPIException(f"Error fetching team rankings: {str(e)}")
+            _msg = f"Error fetching team rankings: {str(e)}"
+            logger.error(_msg)
+            raise RemoteAPIException(_msg)
 
     def get_scoreboard(self, league: str, start_date: datetime, end_date: datetime):
         try:
@@ -63,7 +69,9 @@ class ApiConsumer:
             )
             return response.json()
         except Exception as e:
-            raise RemoteAPIException(f"Error fetching scoreboard: {str(e)}")
+            _msg = f"Error fetching scoreboard: {str(e)}"
+            logger.error(_msg)
+            raise RemoteAPIException(_msg)
 
     def process_data(self, team_rankings: dict, scoreboard: dict) -> EventsResponse:
         # Process the data to generate the events

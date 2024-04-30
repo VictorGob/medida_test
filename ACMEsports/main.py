@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -7,11 +9,13 @@ from ACMEsports.customErrors import RemoteAPIException
 from ACMEsports.EventResponse import EventsResponse
 from ACMEsports.eventsData import EventsData
 
+logger = logging.getLogger(__name__)
 app = FastAPI()
 
 
 @app.post("/events")
 async def get_events(data: EventsData):
+    logger.info(f"Request received for events data: {data}")
     _resp: EventsResponse = ApiConsumer().get_data(data)
     return _resp
 
