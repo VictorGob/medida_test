@@ -1,22 +1,31 @@
+import os
 from datetime import datetime
 
 import requests
 
+from ACMEsports.customErrors import RemoteAPIException
 from ACMEsports.EventResponse import Event, EventsResponse
 from ACMEsports.eventsData import EventsData
 
-URL_SCOREBOARD = "http://localhost:9000/{league}/scoreboard"
-"""
-Parameters:
-    - league: str (enum)
-    - startDate: str (format: 'YYYY-MM-DD')
-    - endDate: str (format: 'YYYY-MM-DD')
-"""
-URL_TEAM_RANKINGS = "http://localhost:9000/{league}/team-rankings"
-"""
-Parameters:
-    - league: str (enum)
-"""
+# To detect if the code is running inside a Docker container, and adjust the port accordingly
+IN_DOCKER = os.environ.get("IN_DOCKER", False)
+
+if IN_DOCKER:
+    URL_SCOREBOARD = "http://openapi_mock:8080/{league}/scoreboard"
+    """
+    Parameters:
+        - league: str (enum)
+        - startDate: str (format: 'YYYY-MM-DD')
+        - endDate: str (format: 'YYYY-MM-DD')
+    """
+    URL_TEAM_RANKINGS = "http://openapi_mock:8080/{league}/team-rankings"
+    """
+    Parameters:
+        - league: str (enum)
+    """
+else:
+    URL_SCOREBOARD = "http://localhost:9000/{league}/scoreboard"
+    URL_TEAM_RANKINGS = "http://localhost:9000/{league}/team-rankings"
 
 
 class ApiConsumer:
@@ -25,31 +34,36 @@ class ApiConsumer:
         self.url_team_rankings = URL_TEAM_RANKINGS
 
     def get_data(self, events_data: EventsData) -> EventsResponse:
-        try:
-            team_rankings: dict = self.get_team_rankings(events_data.league)
-            scoreboard: dict = self.get_scoreboard(
-                events_data.league, events_data.startDate, events_data.endDate
-            )
-            return self.process_data(team_rankings, scoreboard)
-        except Exception as e:
-            raise ValueError({"error": str(e)})
+        team_rankings: dict = self.get_team_rankings(events_data.league)
+        scoreboard: dict = self.get_scoreboard(events_data.league, events_data.startDate, events_data.endDate)
+        if len(scoreboard) == 0 or len(team_rankings) == 0:
+            raise RemoteAPIException("No data found for the given parameters.")
+        return self.process_data(team_rankings, scoreboard)
 
     def get_team_rankings(self, league: str):
-        url = self.url_team_rankings.format(league=league)
-        response = requests.get(url)
-        data = response.json()
-        # User teamId as key, for faster lookup
-        modified_data = {d.pop("teamId"): d for d in data}
-        return modified_data
+        try:
+            url = self.url_team_rankings.format(league=league)
+            response = requests.get(url)
+            data = response.json()
+            # User teamId as key, for faster lookup
+            modified_data = {d.pop("teamId"): d for d in data}
+            return modified_data
+        except Exception as e:
+            raise RemoteAPIException(f"Error fetching team rankings: {str(e)}")
 
     def get_scoreboard(self, league: str, start_date: datetime, end_date: datetime):
-        url = self.url_scoreboard.format(league=league)
-        response = requests.get(
-            url,
-            params={"startDate": start_date.strftime("%Y-%m-%d"), "endDate": end_date.strftime("%Y-%m-%d")},
-        )
-
-        return response.json()
+        try:
+            url = self.url_scoreboard.format(league=league)
+            response = requests.get(
+                url,
+                params={
+                    "startDate": start_date.strftime("%Y-%m-%d"),
+                    "endDate": end_date.strftime("%Y-%m-%d"),
+                },
+            )
+            return response.json()
+        except Exception as e:
+            raise RemoteAPIException(f"Error fetching scoreboard: {str(e)}")
 
     def process_data(self, team_rankings: dict, scoreboard: dict) -> EventsResponse:
         # Process the data to generate the events
@@ -82,7 +96,6 @@ class ApiConsumer:
 
 
 """Expected return:
-```yaml
     Event:
       type: object
       properties:
@@ -125,5 +138,4 @@ class ApiConsumer:
             type: number
             format: float
             minimum: 0.0
-```
 """
