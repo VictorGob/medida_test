@@ -35,7 +35,7 @@ pytest -v
 However, it would be necessary to consider how to differentiate between information that does not exist and information that is still pending. For example:
 * User requests information for the entire month of January for League A.
 * This information is not in the database, so the app requests it from the third-party API, processes it, saves it in the database, and returns it to the user.
-* The same user requests information again: for the entire months of January and February for League A.
+* Other user requests information again: for the entire months of January and February for League A.
 * The app checks that it already has data for January but not for February, so it requests February data from the third-party API.
 * League A had no games played in February, so it returns no data.
 * The app returns only the January information because it's the only data available.
@@ -45,4 +45,4 @@ A solution is needed to store data that has been requested but does not exist, t
 
 2. Consider having more than one third-party API to request information from. This would allow the app to continue working even if one of the APIs is down. Consider adding preference to one API over another, depending on the response time or the number of requests made.
 
-3. Add logging to the app to monitor its performance and to help debug any issues that may arise.
+3. Dynamically load the leagues accepted by the app, as well as the endpoints of third-party APIs, so that the application does not need to be restarted if those data are modified.
